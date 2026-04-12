@@ -3,7 +3,7 @@ async function askGemini(systemPrompt, context, userMsg) {
   
   if (!apiKey) return "❌ No API key found";
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   const fullPrompt = `${systemPrompt}\n\nChat history:\n${context}\n\nUser said: "${userMsg}"\n\nRespond in character in 2-3 sentences.`;
 
