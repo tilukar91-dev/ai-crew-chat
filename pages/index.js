@@ -281,6 +281,8 @@ const s = {
   },
   landingHint: { fontSize: 11, color: "#333355", fontFamily: "'Space Mono', monospace" },
   header: {
+    position: "sticky",
+    top: 0,
     background: "#0f0f1a", borderBottom: "1px solid #1e1e35",
     padding: "12px 20px", zIndex: 10, flexShrink: 0,
     backdropFilter: "blur(10px)",
