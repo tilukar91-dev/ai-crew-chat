@@ -20,30 +20,20 @@ export default function Chat() {
   const [history, setHistory] = useState([]);
   const bottomRef = useRef(null);
 
-  // Load history from localStorage on mount
+  // Load history and current chat on mount
   useEffect(() => {
-    const saved = localStorage.getItem("chatHistory");
-    if (saved) setHistory(JSON.parse(saved));
+    const savedHistory = localStorage.getItem("chatHistory");
+    if (savedHistory) setHistory(JSON.parse(savedHistory));
+
+    const currentChat = localStorage.getItem("currentChat");
+    if (currentChat) setMessages(JSON.parse(currentChat));
   }, []);
 
-  // Save current conversation to history when leaving
+  // Auto-save current chat after every message
   useEffect(() => {
-    const saveConvo = () => {
-      const realMessages = messages.filter((m) => m.sender !== "system");
-      if (realMessages.length === 0) return;
-      const convo = {
-        id: Date.now(),
-        date: new Date().toLocaleDateString(),
-        preview: realMessages[0].text.slice(0, 40) + "...",
-        messages,
-      };
-      const saved = localStorage.getItem("chatHistory");
-      const existing = saved ? JSON.parse(saved) : [];
-      const updated = [convo, ...existing].slice(0, 20);
-      localStorage.setItem("chatHistory", JSON.stringify(updated));
-    };
-    window.addEventListener("beforeunload", saveConvo);
-    return () => window.removeEventListener("beforeunload", saveConvo);
+    const realMessages = messages.filter((m) => m.sender !== "system");
+    if (realMessages.length === 0) return;
+    localStorage.setItem("currentChat", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
@@ -106,16 +96,6 @@ export default function Chat() {
     }
   };
 
-  const loadConvo = (convo) => {
-    setMessages(convo.messages);
-    setDrawerOpen(false);
-  };
-
-  const clearHistory = () => {
-    localStorage.removeItem("chatHistory");
-    setHistory([]);
-  };
-
   const newChat = () => {
     const realMessages = messages.filter((m) => m.sender !== "system");
     if (realMessages.length > 0) {
@@ -131,6 +111,21 @@ export default function Chat() {
       localStorage.setItem("chatHistory", JSON.stringify(updated));
       setHistory(updated);
     }
+    localStorage.removeItem("currentChat");
+    setMessages([{ id: "sys", sender: "system", text: "👋 Chaos and Pixie are here! Say something..." }]);
+    setDrawerOpen(false);
+  };
+
+  const loadConvo = (convo) => {
+    setMessages(convo.messages);
+    localStorage.setItem("currentChat", JSON.stringify(convo.messages));
+    setDrawerOpen(false);
+  };
+
+  const clearHistory = () => {
+    localStorage.removeItem("chatHistory");
+    localStorage.removeItem("currentChat");
+    setHistory([]);
     setMessages([{ id: "sys", sender: "system", text: "👋 Chaos and Pixie are here! Say something..." }]);
     setDrawerOpen(false);
   };
@@ -164,9 +159,7 @@ export default function Chat() {
               )}
             </div>
 
-            {history.length > 0 && (
-              <button onClick={clearHistory} style={s.clearBtn}>🗑️ Clear All History</button>
-            )}
+            <button onClick={clearHistory} style={s.clearBtn}>🗑️ Clear All History</button>
           </div>
         </div>
       )}
@@ -325,6 +318,7 @@ const s = {
     background: "none", border: "1px solid #ff444444",
     borderRadius: 12, color: "#ff6666", fontSize: 13,
     padding: "10px 16px", cursor: "pointer", textAlign: "center",
+    marginTop: "auto",
   },
   header: {
     position: "sticky", top: 0,
