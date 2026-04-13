@@ -16,7 +16,35 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [typing, setTyping] = useState([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [history, setHistory] = useState([]);
   const bottomRef = useRef(null);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("chatHistory");
+    if (saved) setHistory(JSON.parse(saved));
+  }, []);
+
+  // Save current conversation to history when leaving
+  useEffect(() => {
+    const saveConvo = () => {
+      const realMessages = messages.filter((m) => m.sender !== "system");
+      if (realMessages.length === 0) return;
+      const convo = {
+        id: Date.now(),
+        date: new Date().toLocaleDateString(),
+        preview: realMessages[0].text.slice(0, 40) + "...",
+        messages,
+      };
+      const saved = localStorage.getItem("chatHistory");
+      const existing = saved ? JSON.parse(saved) : [];
+      const updated = [convo, ...existing].slice(0, 20);
+      localStorage.setItem("chatHistory", JSON.stringify(updated));
+    };
+    window.addEventListener("beforeunload", saveConvo);
+    return () => window.removeEventListener("beforeunload", saveConvo);
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,7 +59,7 @@ export default function Chat() {
     const userMsg = { id: Date.now(), sender: "user", text };
     setMessages((prev) => [...prev, userMsg]);
 
-    const history = [...messages, userMsg]
+    const historyContext = [...messages, userMsg]
       .filter((m) => m.sender !== "system")
       .map((m) => ({
         sender: m.sender,
@@ -45,7 +73,7 @@ export default function Chat() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userMessage: text, history }),
+        body: JSON.stringify({ userMessage: text, history: historyContext }),
       });
       const data = await res.json();
 
@@ -78,14 +106,75 @@ export default function Chat() {
     }
   };
 
+  const loadConvo = (convo) => {
+    setMessages(convo.messages);
+    setDrawerOpen(false);
+  };
+
+  const clearHistory = () => {
+    localStorage.removeItem("chatHistory");
+    setHistory([]);
+  };
+
+  const newChat = () => {
+    const realMessages = messages.filter((m) => m.sender !== "system");
+    if (realMessages.length > 0) {
+      const convo = {
+        id: Date.now(),
+        date: new Date().toLocaleDateString(),
+        preview: realMessages[0].text.slice(0, 40) + "...",
+        messages,
+      };
+      const saved = localStorage.getItem("chatHistory");
+      const existing = saved ? JSON.parse(saved) : [];
+      const updated = [convo, ...existing].slice(0, 20);
+      localStorage.setItem("chatHistory", JSON.stringify(updated));
+      setHistory(updated);
+    }
+    setMessages([{ id: "sys", sender: "system", text: "👋 Chaos and Pixie are here! Say something..." }]);
+    setDrawerOpen(false);
+  };
+
   return (
     <div style={s.root}>
       <div style={{ ...s.blob, top: -100, left: -100, background: "#E040FB22" }} />
       <div style={{ ...s.blob, bottom: -100, right: -100, background: "#F48FB122" }} />
 
+      {/* Drawer */}
+      {drawerOpen && (
+        <div style={s.overlay} onClick={() => setDrawerOpen(false)}>
+          <div style={s.drawer} onClick={(e) => e.stopPropagation()}>
+            <div style={s.drawerHeader}>
+              <span style={s.drawerTitle}>💬 History</span>
+              <button onClick={() => setDrawerOpen(false)} style={s.iconBtn}>✕</button>
+            </div>
+
+            <button onClick={newChat} style={s.newChatBtn}>+ New Chat</button>
+
+            <div style={s.drawerList}>
+              {history.length === 0 ? (
+                <p style={s.drawerEmpty}>No history yet. Start chatting!</p>
+              ) : (
+                history.map((convo) => (
+                  <div key={convo.id} style={s.drawerItem} onClick={() => loadConvo(convo)}>
+                    <div style={s.drawerDate}>{convo.date}</div>
+                    <div style={s.drawerPreview}>{convo.preview}</div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {history.length > 0 && (
+              <button onClick={clearHistory} style={s.clearBtn}>🗑️ Clear All History</button>
+            )}
+          </div>
+        </div>
+      )}
+
       <header style={s.header}>
         <div style={s.headerInner}>
           <div style={s.logo}>
+            <button onClick={() => setDrawerOpen(true)} style={s.iconBtn}>☰</button>
             <button onClick={() => router.push("/")} style={s.backBtn}>←</button>
             <span style={s.logoIcon}>💬</span>
             <span style={s.logoText}>AI CREW</span>
@@ -193,6 +282,50 @@ const s = {
     position: "absolute", width: 400, height: 400,
     borderRadius: "50%", filter: "blur(80px)", pointerEvents: "none", zIndex: 0,
   },
+  overlay: {
+    position: "fixed", inset: 0, background: "#00000088",
+    zIndex: 100, display: "flex",
+  },
+  drawer: {
+    width: 280, height: "100%", background: "#0f0f1a",
+    borderRight: "1px solid #1e1e35", padding: "20px",
+    display: "flex", flexDirection: "column", gap: 16,
+    overflowY: "auto",
+  },
+  drawerHeader: {
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+  },
+  drawerTitle: {
+    fontSize: 16, fontWeight: 700, color: "#e8e8f0",
+  },
+  drawerList: {
+    display: "flex", flexDirection: "column", gap: 10, flex: 1,
+  },
+  drawerItem: {
+    background: "#1a1a2e", border: "1px solid #2a2a45",
+    borderRadius: 12, padding: "10px 14px", cursor: "pointer",
+  },
+  drawerDate: {
+    fontSize: 10, color: "#555577", fontFamily: "'Space Mono', monospace",
+    marginBottom: 4,
+  },
+  drawerPreview: {
+    fontSize: 13, color: "#aaaacc", lineHeight: 1.4,
+  },
+  drawerEmpty: {
+    fontSize: 13, color: "#555577", fontFamily: "'Space Mono', monospace",
+  },
+  newChatBtn: {
+    background: "linear-gradient(135deg, #E040FB, #F48FB1)",
+    border: "none", borderRadius: 12, color: "#fff",
+    fontSize: 14, fontWeight: 700, padding: "10px 16px",
+    cursor: "pointer", textAlign: "center",
+  },
+  clearBtn: {
+    background: "none", border: "1px solid #ff444444",
+    borderRadius: 12, color: "#ff6666", fontSize: 13,
+    padding: "10px 16px", cursor: "pointer", textAlign: "center",
+  },
   header: {
     position: "sticky", top: 0,
     background: "#0f0f1a", borderBottom: "1px solid #1e1e35",
@@ -204,10 +337,13 @@ const s = {
     maxWidth: 740, margin: "0 auto", width: "100%",
   },
   logo: { display: "flex", alignItems: "center", gap: 10 },
+  iconBtn: {
+    background: "none", border: "none", color: "#888899",
+    fontSize: 20, cursor: "pointer", padding: "4px 8px", borderRadius: 8,
+  },
   backBtn: {
     background: "none", border: "none", color: "#888899",
-    fontSize: 20, cursor: "pointer", padding: "4px 8px",
-    borderRadius: 8,
+    fontSize: 20, cursor: "pointer", padding: "4px 8px", borderRadius: 8,
   },
   logoIcon: { fontSize: 22 },
   logoText: {
