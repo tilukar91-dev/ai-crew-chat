@@ -16,7 +16,7 @@ async function askGroq(systemPrompt, context, userMsg) {
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: fullPrompt }],
-      max_tokens: 80,
+      max_tokens: 60,
       temperature: 0.9,
     }),
   });
@@ -28,8 +28,8 @@ async function askGroq(systemPrompt, context, userMsg) {
 }
 
 const PERSONALITIES = [
-  { id: "chaos", name: "Chaos", emoji: "🎲", prompt: "You are Chaos, a wildly funny unpredictable AI. You love jokes and absurd observations. You adore Pixie. Keep responses to 1 sentence only." },
-  { id: "pixie", name: "Pixie", emoji: "🌸", prompt: "You are Pixie, a cheerful sweet playful AI. You use cute expressions and emojis. You think Chaos is hilarious. Keep responses to 1 sentence only." },
+  { id: "chaos", name: "Chaos", emoji: "🎲", prompt: "You are Chaos, a wildly funny unpredictable AI. You love jokes and absurd observations. You adore Pixie. ONE sentence max. Never write more than one sentence." },
+  { id: "pixie", name: "Pixie", emoji: "🌸", prompt: "You are Pixie, a cheerful sweet playful AI. You use cute expressions and emojis. You think Chaos is hilarious. ONE sentence max. Never write more than one sentence." },
 ];
 
 export default async function handler(req, res) {
