@@ -1,4 +1,4 @@
-function askGroq(systemPrompt, context, userMsg) {
+async function askGroq(systemPrompt, context, userMsg) {
   const apiKey = process.env.GROQ_API_KEY;
   
   if (!apiKey) return "❌ No API key found";
