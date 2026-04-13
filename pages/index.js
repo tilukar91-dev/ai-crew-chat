@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
 const PERSONALITIES = [
-  { id: "aria",  name: "Aria",  emoji: "🧘", color: "#7EC8C8", bubble: "#0d2626" },
-  { id: "sys7",  name: "SYS-7", emoji: "🤖", color: "#F4A261", bubble: "#271600" },
   { id: "chaos", name: "Chaos", emoji: "🎲", color: "#E040FB", bubble: "#1e0028" },
   { id: "pixie", name: "Pixie", emoji: "🌸", color: "#F48FB1", bubble: "#280013" },
 ];
@@ -11,7 +9,7 @@ const getP = (id) => PERSONALITIES.find((p) => p.id === id);
 
 export default function Home() {
   const [messages, setMessages] = useState([
-    { id: "sys", sender: "system", text: "👋 Welcome to AI Crew Chat! Four unique AI personalities are here and ready to talk. Send a message to get started!" },
+    { id: "sys", sender: "system", text: "👋 Welcome to AI Crew Chat! Chaos and Pixie are here and ready to talk. Send a message to get started!" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -80,8 +78,8 @@ export default function Home() {
 
   return (
     <div style={s.root}>
-      <div style={{ ...s.blob, top: -100, left: -100, background: "#7EC8C822" }} />
-      <div style={{ ...s.blob, bottom: -100, right: -100, background: "#E040FB22" }} />
+      <div style={{ ...s.blob, top: -100, left: -100, background: "#E040FB22" }} />
+      <div style={{ ...s.blob, bottom: -100, right: -100, background: "#F48FB122" }} />
 
       <header style={s.header}>
         <div style={s.headerInner}>
@@ -149,7 +147,7 @@ export default function Home() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Say something to the crew... (Enter to send)"
+            placeholder="Say something to Chaos & Pixie... (Enter to send)"
             disabled={loading}
             rows={1}
             style={s.textarea}
@@ -162,7 +160,7 @@ export default function Home() {
             ➤
           </button>
         </div>
-        <p style={s.hint}>Powered by Gemini AI · 4 unique personalities</p>
+        <p style={s.hint}>Powered by Groq AI · 2 unique personalities</p>
       </footer>
 
       <style>{`
@@ -175,7 +173,7 @@ export default function Home() {
           to{opacity:1;transform:translateY(0)}
         }
         textarea { resize: none; overflow: hidden; }
-        textarea:focus { outline: none; border-color: #7EC8C888 !important; }
+        textarea:focus { outline: none; border-color: #E040FB88 !important; }
         button:hover:not(:disabled) { filter: brightness(1.15); }
       `}</style>
     </div>
@@ -205,7 +203,7 @@ const s = {
   logoIcon: { fontSize: 22 },
   logoText: {
     fontSize: 20, fontWeight: 800, letterSpacing: "0.18em",
-    background: "linear-gradient(90deg, #7EC8C8, #F48FB1, #E040FB)",
+    background: "linear-gradient(90deg, #E040FB, #F48FB1)",
     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
   },
   avatars: { display: "flex", gap: 8 },
@@ -281,7 +279,7 @@ const s = {
     transition: "border-color 0.2s",
   },
   sendBtn: {
-    background: "linear-gradient(135deg, #2525dd, #7c3aed)",
+    background: "linear-gradient(135deg, #E040FB, #F48FB1)",
     border: "none", borderRadius: 14, color: "#fff",
     fontSize: 18, width: 48, height: 48,
     display: "flex", alignItems: "center", justifyContent: "center",
